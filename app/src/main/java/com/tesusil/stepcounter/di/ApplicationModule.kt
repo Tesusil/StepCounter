@@ -11,6 +11,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ApplicationComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.reactivex.Scheduler
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -47,12 +50,37 @@ object ApplicationModule {
     @Provides
     fun provideApplicationRepository(
         context: Context,
-        googleSignInAccount: GoogleSignInAccount
+        googleSignInAccount: GoogleSignInAccount,
+        @MaxSteps maxSteps: Int
     ): ApplicationRepository {
-        return ApplicationRepository(context, googleSignInAccount)
+        return ApplicationRepository(context, googleSignInAccount, maxSteps)
+    }
+
+
+    @Singleton
+    @Provides
+    @SubscriptionScheduler
+    fun provideSubscriptionScheduler(): Scheduler {
+        return Schedulers.io()
+    }
+
+
+    @Singleton
+    @Provides
+    @ObserveScheduler
+    fun provideObserveScheduler(): Scheduler {
+        return AndroidSchedulers.mainThread()
     }
 
     @Qualifier
     @Retention(AnnotationRetention.BINARY)
     annotation class MaxSteps
+
+    @Qualifier
+    @Retention(AnnotationRetention.BINARY)
+    annotation class SubscriptionScheduler
+
+    @Qualifier
+    @Retention(AnnotationRetention.BINARY)
+    annotation class ObserveScheduler
 }
