@@ -5,6 +5,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.fitness.FitnessOptions
 import com.google.android.gms.fitness.data.DataType
+import com.tesusil.stepcounter.repository.ApplicationRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,15 +29,24 @@ object ApplicationModule {
 
     @Singleton
     @Provides
-    fun provideGoogleAccount(@ApplicationContext context: Context, fitnessOptions: FitnessOptions) : GoogleSignInAccount {
+    fun provideGoogleAccount(
+        @ApplicationContext context: Context,
+        fitnessOptions: FitnessOptions
+    ): GoogleSignInAccount {
         return GoogleSignIn.getAccountForExtension(context, fitnessOptions)
     }
 
     @MaxSteps
-    @Provides
     @Singleton
-    fun provideMaxSteps(): Int  {
+    @Provides
+    fun provideMaxSteps(): Int {
         return MAX_STEPS
+    }
+
+    @Singleton
+    @Provides
+    fun provideApplicationRepository(): ApplicationRepository {
+        return ApplicationRepository()
     }
 
     @Qualifier
