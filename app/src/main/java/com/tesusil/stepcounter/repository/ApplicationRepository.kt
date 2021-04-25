@@ -17,7 +17,8 @@ import java.util.concurrent.TimeUnit
 
 class ApplicationRepository(
    private val context: Context,
-   private val googleAccount: GoogleSignInAccount
+   private val googleAccount: GoogleSignInAccount,
+   private val maxSteps: Int
 ) {
 
 
@@ -29,7 +30,8 @@ class ApplicationRepository(
     private val listenerDelayTimeUnit: TimeUnit = TimeUnit.MILLISECONDS
 
     private val totalStepListener: OnDataPointListener = getLiveStepsListener {
-        totalStepSubject.onNext(it)
+        val newValue = it % maxSteps
+        totalStepSubject.onNext(newValue)
     }
 
     private val totalStepsRequest: SensorRequest = SensorRequest.Builder()
