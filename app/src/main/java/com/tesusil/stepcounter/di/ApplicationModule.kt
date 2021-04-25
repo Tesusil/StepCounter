@@ -45,8 +45,11 @@ object ApplicationModule {
 
     @Singleton
     @Provides
-    fun provideApplicationRepository(): ApplicationRepository {
-        return ApplicationRepository()
+    fun provideApplicationRepository(
+        context: Context,
+        googleSignInAccount: GoogleSignInAccount
+    ): ApplicationRepository {
+        return ApplicationRepository(context, googleSignInAccount)
     }
 
     @Qualifier
