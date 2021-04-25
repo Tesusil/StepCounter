@@ -39,14 +39,14 @@ class MainActivityViewModelViewModel
         subscribeScheduler: Scheduler = subscribeSchedulers,
         observeScheduler: Scheduler = observeSchedulers,
         onNextAction: (Int) -> Unit = this::onNext,
-        onErrorAction: (Exception) -> Unit = this::onError,
+        onErrorAction: (Throwable) -> Unit = this::onError,
         onCompleteAction: () -> Unit = this::onComplete
     ) {
         val disposable: Disposable = repo
             .getTotalStepsObserver()
             .subscribeOn(subscribeScheduler)
             .observeOn(observeScheduler)
-            .subscribe(this::onNext, this::onError, this::onComplete)
+            .subscribe(onNextAction, onErrorAction, onCompleteAction)
         compositeDisposable.add(disposable)
     }
 
