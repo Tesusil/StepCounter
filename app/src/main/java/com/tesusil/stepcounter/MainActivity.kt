@@ -24,10 +24,6 @@ import javax.inject.Inject
 import kotlin.math.max
 
 
-enum class FitActionRequestCode {
-    SENSOR
-}
-
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
@@ -62,7 +58,7 @@ class MainActivity : AppCompatActivity() {
             binding.model = model
         })
     }
-    
+
     private fun requestPermissions(requestCode: Int) {
         val shouldProvideRationale =
             ActivityCompat.shouldShowRequestPermissionRationale(
