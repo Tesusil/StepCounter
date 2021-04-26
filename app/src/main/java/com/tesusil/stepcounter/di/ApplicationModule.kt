@@ -20,7 +20,7 @@ import javax.inject.Singleton
 @InstallIn(ApplicationComponent::class)
 @Module
 object ApplicationModule {
-    private const val MAX_STEPS = 10000
+    const val MAX_STEPS = 10000
 
     @Singleton
     @Provides
@@ -49,7 +49,7 @@ object ApplicationModule {
     @Singleton
     @Provides
     fun provideApplicationRepository(
-        context: Context,
+        @ApplicationContext context: Context,
         googleSignInAccount: GoogleSignInAccount,
         @MaxSteps maxSteps: Int
     ): ApplicationRepository {
