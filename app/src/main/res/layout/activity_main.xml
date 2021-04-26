@@ -44,10 +44,11 @@
 
         <ImageView
             android:id="@+id/imageView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="80dp"
-            android:src="@drawable/ic_launcher_background"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="60dp"
+            android:src="@drawable/ic_running"
+            android:scaleType="fitXY"
             app:layout_constraintBottom_toTopOf="@+id/main_guideline_bottom"
             app:layout_constraintEnd_toStartOf="@+id/main_guideline_right"
             app:layout_constraintStart_toStartOf="@+id/main_progress_bar"
