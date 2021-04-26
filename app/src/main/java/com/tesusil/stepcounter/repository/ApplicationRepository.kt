@@ -7,22 +7,19 @@ import com.google.android.gms.fitness.Fitness
 import com.google.android.gms.fitness.data.DataType
 import com.google.android.gms.fitness.request.OnDataPointListener
 import com.google.android.gms.fitness.request.SensorRequest
-import io.reactivex.Completable
-import io.reactivex.CompletableObserver
 import io.reactivex.Observable
-import io.reactivex.Observer
-import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.BehaviorSubject
 import java.util.concurrent.TimeUnit
 
 class ApplicationRepository(
-   private val context: Context,
-   private val googleAccount: GoogleSignInAccount,
-   private val maxSteps: Int
+    private val context: Context,
+    private val googleAccount: GoogleSignInAccount,
+    private val maxSteps: Int
 ) {
 
 
-    private val totalStepSubject: BehaviorSubject<Int> = BehaviorSubject.createDefault(DEFAULT_START_VALUE)
+    private val totalStepSubject: BehaviorSubject<Int> =
+        BehaviorSubject.create()
     private val errorSubject: BehaviorSubject<Exception> = BehaviorSubject.create()
 
     private val stepsListenerType: String = "steps"
@@ -34,22 +31,45 @@ class ApplicationRepository(
         totalStepSubject.onNext(newValue)
     }
 
+    private val liveStepListener: OnDataPointListener = getLiveStepsListener {
+        val newValue = (it + totalStepSubject.value) % maxSteps
+        totalStepSubject.onNext(newValue)
+    }
+
     private val totalStepsRequest: SensorRequest = SensorRequest.Builder()
         .setDataType(DataType.TYPE_STEP_COUNT_CUMULATIVE)
         .setSamplingRate(listenerDelayTime, listenerDelayTimeUnit)
         .build()
 
-    fun subscribeClients() {
+    private val liveStepsRequest: SensorRequest = SensorRequest.Builder()
+        .setDataType(DataType.TYPE_STEP_COUNT_DELTA)
+        .setSamplingRate(listenerDelayTime, listenerDelayTimeUnit)
+        .build()
+
+    fun subscribeTotalStepsClient() {
         requestTotalSteps()
     }
 
-    fun unSubscribeClient(
-        listener: OnDataPointListener = totalStepListener,
+    fun subscribeLiveStepsClient() {
+        requestLiveSteps()
+    }
+
+    fun unSubscribeTotalStepsClient(
         onSuccessAction: () -> Unit = this::onSensorClientUnSubscribeSuccess,
         onErrorAction: (Exception) -> Unit = this::onSensorClientUnSubscribeError
     ) {
         Fitness.getSensorsClient(context, googleAccount)
-            .remove(listener)
+            .remove(totalStepListener)
+            .addOnSuccessListener { onSuccessAction.invoke() }
+            .addOnFailureListener { onErrorAction.invoke(it) }
+    }
+
+    fun unSubscribeLiveStepsClient(
+        onSuccessAction: () -> Unit = this::onSensorClientUnSubscribeSuccess,
+        onErrorAction: (Exception) -> Unit = this::onSensorClientUnSubscribeError
+    ) {
+        Fitness.getSensorsClient(context, googleAccount)
+            .remove(liveStepListener)
             .addOnSuccessListener { onSuccessAction.invoke() }
             .addOnFailureListener { onErrorAction.invoke(it) }
     }
@@ -72,6 +92,19 @@ class ApplicationRepository(
             }
     }
 
+    private fun requestLiveSteps(
+        onSuccessAction: () -> Unit = this::onSensorSubscribeSuccess,
+        onErrorAction: (Exception) -> Unit = this::onSensorSubscribeError
+    ) {
+        Fitness.getSensorsClient(context, googleAccount)
+            .add(liveStepsRequest, liveStepListener)
+            .addOnSuccessListener {
+                onSuccessAction.invoke()
+            }
+            .addOnFailureListener { exception ->
+                onErrorAction.invoke(exception)
+            }
+    }
 
     private fun getLiveStepsListener(
         fieldName: String = stepsListenerType,

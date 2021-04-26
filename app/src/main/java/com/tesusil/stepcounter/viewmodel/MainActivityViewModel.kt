@@ -2,6 +2,7 @@ package com.tesusil.stepcounter.viewmodel
 
 import android.util.Log
 import androidx.hilt.Assisted
+import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -9,15 +10,12 @@ import androidx.lifecycle.ViewModel
 import com.tesusil.stepcounter.di.ApplicationModule
 import com.tesusil.stepcounter.repository.ApplicationRepository
 import io.reactivex.Scheduler
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
-import javax.inject.Inject
 
 
-class MainActivityViewModelViewModel
-@Inject constructor(
+class MainActivityViewModel
+@ViewModelInject constructor(
     private val repo: ApplicationRepository,
     @Assisted private val savedStateHandle: SavedStateHandle,
     @ApplicationModule.ObserveScheduler private val observeSchedulers: Scheduler,
@@ -29,9 +27,10 @@ class MainActivityViewModelViewModel
 
     private val compositeDisposable: CompositeDisposable
     private val _totalStepsLiveData: MutableLiveData<Int> = MutableLiveData()
+    private var afterFirstTick: Boolean = false
 
     init {
-        repo.subscribeClients()
+        repo.subscribeTotalStepsClient()
         compositeDisposable = CompositeDisposable()
     }
 
@@ -52,6 +51,11 @@ class MainActivityViewModelViewModel
 
     private fun onNext(argument: Int) {
         _totalStepsLiveData.postValue(argument)
+        if(!afterFirstTick) {
+            repo.unSubscribeTotalStepsClient()
+            repo.subscribeLiveStepsClient()
+            afterFirstTick = true
+        }
     }
 
     private fun onError(exception: Throwable) {
@@ -66,6 +70,11 @@ class MainActivityViewModelViewModel
     override fun onCleared() {
         if (compositeDisposable.size() > 0) {
             compositeDisposable.clear()
+        }
+        if(afterFirstTick) {
+            repo.unSubscribeLiveStepsClient()
+        } else{
+            repo.unSubscribeTotalStepsClient()
         }
     }
 
